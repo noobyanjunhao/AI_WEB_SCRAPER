@@ -31,9 +31,43 @@ def remove_overlays(driver):
     except Exception as e:
         print(f"Could not remove overlays: {str(e)}")
 
-from selenium.webdriver.common.by import By
-from selenium.common.exceptions import NoSuchElementException
-import time
+def fill_zip_code_generic(driver, zip_code="10001", input_xpath='//*[@id="pie-store-finder-modal-search-field"]', button_selector="#sf-search-icon"):
+    """
+    Generic function to fill in a zip code in a pop-up.
+    
+    Parameters:
+    - driver: Selenium WebDriver instance.
+    - zip_code: The zip code to enter.
+    - input_xpath: XPath of the zip code input field.
+    - button_selector: CSS selector of the button to submit the zip code.
+    """
+    try:
+        # Wait until the input is visible and enabled
+        zip_input = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.XPATH, input_xpath))
+        )
+        
+        # Enter the zip code
+        zip_input.clear()
+        zip_input.send_keys(zip_code)
+        
+        # Wait until the button is clickable
+        submit_button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.CSS_SELECTOR, button_selector))
+        )
+        submit_button.click()
+        
+        print("Zip code filled and submitted.")
+        time.sleep(3)  # Wait for the page to reload with updated information
+
+    except (NoSuchElementException, TimeoutException) as e:
+        print(f"Could not find zip code input or submit button: {str(e)}")
+    except ElementNotInteractableException:
+        print("Element found but not interactable; retrying...")
+        time.sleep(2)  # Small delay before retrying
+        fill_zip_code_generic(driver, zip_code, input_xpath, button_selector)  # Retry the function
+
+
 
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
